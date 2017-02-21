@@ -23,7 +23,8 @@ Params : 9 orientations, 8px per cell and 2 cells per block
    * Tried different parameters for orientations : 6, 8, 9
    * Tried different parameters for pixel per cell : 4, 8
    * Tried different parameters for cell per block  : 2, 4
-
+   * Color Spaces tried: RGB, HSL, HSV and YCrCB
+   * y_start_stop : [400, 656] ( 400 + 64 * 4 = 656 ). Here window size is 64 and end can be calculated by multiplying it by 4.
 
 ####2. Explain how you settled on your final choice of HOG parameters.
 
@@ -54,14 +55,26 @@ Also searching over all possible options would result in false positive and one 
 ### Video Implementation
 
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](https://youtu.be/rRqwSsyJNAg)
+Here's a [link to my video result](https://youtu.be/CvYRX1yBSrU)
 
 
 ####2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+#### Parameter Tuning
 
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
+   * Mean of last 6 heat maps with threshold of 1  and scale of 1.5
+      Still seeing some false positives and the cars bounding box were not perfect
+   * Mean of last 10 heat maps with threshold of 0.75 and scale of 1.25
+      No false positive good results but a bit slow
+   * Mean of last 10 heat maps with threshold of 1 and scale of 1.4   
+      No false positives good results. One case where the car doesn't have bounding box when it move a bit far away from the camera
+   * Mean of last 10 heat maps with scale of 1.5 and threshold of 0.98 works fine.
+      
+To avoid false positive we could just keep the last 10 frames of the heatmaps and average them with some threshold.
+
+Also by searching in the lower half between [400, 656] position we can be certain that we won't catch any patterns that are outside this Region of Interest.
+
+![Pipeline](output_images/udacity_feedback.jpg)
 
 ### Here are images and their corresponding heatmaps:
 
